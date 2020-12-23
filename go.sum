@@ -57,8 +57,6 @@ github.com/envoyproxy/go-control-plane v0.9.7/go.mod h1:cwu0lG7PUMfa9snN8LXBig5y
 github.com/envoyproxy/protoc-gen-validate v0.1.0/go.mod h1:iSmxcyjqTsJpI2R4NaDN7+kN2VEUnK/pcBlmesArF7c=
 github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5 h1:Yzb9+7DPaBjB8zlTR87/ElzFsnQfuHnVUVqpZZIcV5Y=
 github.com/erikstmartin/go-testdb v0.0.0-20160219214506-8d10e4a1bae5/go.mod h1:a2zkGnVExMxdzMo3M0Hi/3sEU+cWnZpSni0O6/Yb/P0=
-github.com/fakhripraya/emailing-service v0.0.0-20201223124552-efd9885cb92f h1:VufnkErcccWePxYDGf3YpgVxoTaK+aZDKhHFRK0XHfE=
-github.com/fakhripraya/emailing-service v0.0.0-20201223124552-efd9885cb92f/go.mod h1:ECNiOJc9p6r0EAgZl99kr/1XUioSGMGWbvKoM55DJrs=
 github.com/fakhripraya/emailing-service v0.0.0-20201223131341-31db4590d5a5 h1:tH+OeUGsNetxmc7xU99Y6VM4zWCl8eiFYSgMbyBymQM=
 github.com/fakhripraya/emailing-service v0.0.0-20201223131341-31db4590d5a5/go.mod h1:ECNiOJc9p6r0EAgZl99kr/1XUioSGMGWbvKoM55DJrs=
 github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=
