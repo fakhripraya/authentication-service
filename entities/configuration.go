@@ -2,12 +2,11 @@ package entities
 
 // Configuration Entity
 type Configuration struct {
-	API             APIConfiguration
-	Database        DatabaseConfiguration
-	Jwt             JwtConfiguration
-	MySQLStore      MySQLStoreConfiguration
-	EmailCredential EmailCredential
-	WA              WASession
+	API        APIConfiguration
+	Database   DatabaseConfiguration
+	Jwt        JwtConfiguration
+	MySQLStore MySQLStoreConfiguration
+	WA         WASession
 }
 
 // APIConfiguration is an entity that stores the app configuration
@@ -35,12 +34,6 @@ type JwtConfiguration struct {
 // MySQLStoreConfiguration is an entity that stores the MySqlStore secret
 type MySQLStoreConfiguration struct {
 	Secret string
-}
-
-// EmailCredential is an entity that stores an smtp mailer credentials
-type EmailCredential struct {
-	Username string
-	Password string
 }
 
 // WASession is an entity that stores a whatsapp session

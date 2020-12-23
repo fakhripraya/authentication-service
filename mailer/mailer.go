@@ -9,47 +9,21 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/fakhripraya/authentication-service/entities"
-
 	"github.com/hashicorp/go-hclog"
-	"gopkg.in/gomail.v2"
 )
 
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 // Email is a struct for email variable
 type Email struct {
-	cred   *entities.EmailCredential
 	logger hclog.Logger
 }
 
 // NewEmail creates a new email handler
-func NewEmail(cred *entities.EmailCredential, logger hclog.Logger) *Email {
+func NewEmail(logger hclog.Logger) *Email {
 	return &Email{
-		cred:   cred,
 		logger: logger,
 	}
-}
-
-// SendEmail is a function to send email via gomail
-func (email *Email) SendEmail(to, cc []string, subject, body string) error {
-
-	// creating new gomail message
-	mail := gomail.NewMessage()
-	mail.SetHeader("From", email.cred.Username)
-	mail.SetHeader("To", to...)
-	mail.SetHeader("Cc", cc...)
-	mail.SetHeader("Subject", subject)
-	mail.SetBody("text/html", body)
-
-	dialer := gomail.NewDialer("smtp.gmail.com", 587, email.cred.Username, email.cred.Password)
-
-	// Send the email
-	if err := dialer.DialAndSend(mail); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // ParseTemplate is a function to parse an email template to Email body

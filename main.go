@@ -67,7 +67,7 @@ func main() {
 
 	defer conn.Close()
 
-	// create client
+	// create gRPC client connection
 	clientConnection := protos.NewEmailClient(conn)
 
 	// Open the database connection based on DB configuration
@@ -101,7 +101,7 @@ func main() {
 	}
 
 	// create an email smtp protocol
-	emailSender := mailer.NewEmail(&appConfig.EmailCredential, logger)
+	emailSender := mailer.NewEmail(logger)
 
 	// create a credentials instance
 	credentials := data.NewCredentials(clientConnection, logger)
