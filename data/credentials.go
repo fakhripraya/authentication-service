@@ -2,6 +2,7 @@ package data
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -131,12 +132,6 @@ func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *
 			return "", err
 		}
 
-		// send the email
-		// err = emailSender.SendEmail([]string{user.Username}, []string{}, "Verifikasi akun Indekos anda", template)
-		// if err != nil {
-		// 	return "", err
-		// }
-
 		// send email through gRPC service
 		er := &protos.EmailRequest{
 			To:      []string{user.Username},
@@ -145,7 +140,18 @@ func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *
 			Body:    template,
 		}
 
-		resp, err := cred.emailClient.SendEmail(context.Background(), er)
+		resp, _ := cred.emailClient.SendEmail(context.Background(), er)
+		cred.logger.Info(resp.ErrorCode)
+		if resp != nil {
+			if resp.ErrorCode == "404" {
+				rw.WriteHeader(http.StatusNotFound)
+			}
+			if resp.ErrorCode == "500" {
+				rw.WriteHeader(http.StatusInternalServerError)
+			}
+			return "", fmt.Errorf(resp.ErrorMessage)
+		}
+
 	} else {
 		// if with phone (WA)
 		// set the WA target info
@@ -159,6 +165,7 @@ func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *
 		// send the WA text
 		_, err := waSender.Wac.Send(text)
 		if err != nil {
+			rw.WriteHeader(http.StatusNotFound)
 			return "", err
 		}
 

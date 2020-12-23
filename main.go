@@ -14,12 +14,14 @@ import (
 	"github.com/fakhripraya/authentication-service/entities"
 	"github.com/fakhripraya/authentication-service/handlers"
 	"github.com/fakhripraya/authentication-service/mailer"
+	protos "github.com/fakhripraya/emailing-service/protos/email"
 	gohandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/go-hclog"
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	"github.com/srinathgs/mysqlstore"
+	"google.golang.org/grpc"
 )
 
 var err error
@@ -57,6 +59,17 @@ func main() {
 	var appConfig entities.Configuration
 	data.ConfigInit(&appConfig)
 
+	// creates a gRPC connection WithInsecure
+	conn, err := grpc.Dial("localhost:9092", grpc.WithInsecure())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer conn.Close()
+
+	// create client
+	clientConnection := protos.NewEmailClient(conn)
+
 	// Open the database connection based on DB configuration
 	logger.Info("Establishing database connection on DB : " + appConfig.Database.Host + ":" + strconv.Itoa(appConfig.Database.Port))
 	config.DB, err = gorm.Open("mysql", config.DbURL(config.BuildDBConfig(&appConfig.Database)))
@@ -91,7 +104,7 @@ func main() {
 	emailSender := mailer.NewEmail(&appConfig.EmailCredential, logger)
 
 	// create a credentials instance
-	credentials := data.NewCredentials(logger)
+	credentials := data.NewCredentials(clientConnection, logger)
 
 	// create the handlers
 	authHandler := handlers.NewAuth(logger, credentials, sessionStore, emailSender, waSender)
