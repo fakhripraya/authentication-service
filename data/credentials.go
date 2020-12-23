@@ -141,7 +141,7 @@ func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *
 		}
 
 		resp, _ := cred.emailClient.SendEmail(context.Background(), er)
-		cred.logger.Info(resp.ErrorCode)
+
 		if resp != nil {
 			if resp.ErrorCode == "404" {
 				rw.WriteHeader(http.StatusNotFound)
