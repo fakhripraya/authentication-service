@@ -28,7 +28,6 @@ func NewEmail(logger hclog.Logger) *Email {
 
 // ParseTemplate is a function to parse an email template to Email body
 func (email *Email) ParseTemplate(templateFileName string, data interface{}) (string, error) {
-	email.logger.Info("Parsing Email")
 
 	// Get the application working directory
 	workingDirectiory, err := os.Getwd()

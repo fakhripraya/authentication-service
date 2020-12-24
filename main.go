@@ -61,6 +61,7 @@ func main() {
 	data.ConfigInit(&appConfig)
 
 	// creates an Email gRPC service connection WithInsecure
+	logger.Info("Establishing Email gRPC Connection on : " + appConfig.EmailgRPC.Host + ":" + appConfig.EmailgRPC.Port)
 	emailConn, err := grpc.Dial(appConfig.EmailgRPC.Host+":"+appConfig.EmailgRPC.Port, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
@@ -69,6 +70,7 @@ func main() {
 	defer emailConn.Close()
 
 	// creates a WhatsApp gRPC service connection WithInsecure
+	logger.Info("Establishing WhatsApp gRPC Connection on : " + appConfig.WAgRPC.Host + ":" + appConfig.WAgRPC.Port)
 	waConn, err := grpc.Dial(appConfig.WAgRPC.Host+":"+appConfig.WAgRPC.Port, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
@@ -77,8 +79,8 @@ func main() {
 	defer waConn.Close()
 
 	// creates an Email gRPC service client connection
+	logger.Info("Creating gRPCs services client connection")
 	emailConnClient := protos.NewEmailClient(emailConn)
-
 	// creates a WhatsApp gRPC service client connection
 	waConnClient := waProtos.NewWhatsAppClient(waConn)
 
@@ -119,6 +121,7 @@ func main() {
 	serveMux := mux.NewRouter()
 
 	// handlers for the API
+	logger.Info("Setting handlers for the API")
 	getRequest := serveMux.Methods(http.MethodGet).Subrouter()
 	getRequest.HandleFunc("/", authHandler.GetInfo)
 	getRequest.Use(authHandler.MiddlewareValidateAuth)

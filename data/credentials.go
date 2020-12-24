@@ -87,7 +87,6 @@ func (cred *Credentials) GenerateJWT(rw http.ResponseWriter, r *http.Request, st
 func (cred *Credentials) GenerateOTP() string {
 
 	// Generates a random number from 0 - 999999
-	cred.logger.Info("Generating OTP")
 	ranNum := rand.Intn(999999-10000) + 10000
 
 	// Convert the random number to string
@@ -145,14 +144,16 @@ func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *
 		resp, _ := cred.emailClient.SendEmail(context.Background(), er)
 
 		if resp != nil {
-			if resp.ErrorCode == "404" {
-				rw.WriteHeader(http.StatusNotFound)
-			}
-			if resp.ErrorCode == "500" {
-				rw.WriteHeader(http.StatusInternalServerError)
-			}
+			if resp.ErrorCode != "200" {
+				if resp.ErrorCode == "404" {
+					rw.WriteHeader(http.StatusNotFound)
+				}
+				if resp.ErrorCode == "500" {
+					rw.WriteHeader(http.StatusInternalServerError)
+				}
 
-			return "", fmt.Errorf(resp.ErrorMessage)
+				return "", fmt.Errorf(resp.ErrorMessage)
+			}
 		}
 
 	} else {
@@ -167,11 +168,13 @@ func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *
 		waResp, _ := cred.waClient.SendWhatsApp(context.Background(), war)
 
 		if waResp != nil {
-			if waResp.ErrorCode == "404" {
-				rw.WriteHeader(http.StatusNotFound)
-			}
+			if waResp.ErrorCode != "200" {
+				if waResp.ErrorCode == "404" {
+					rw.WriteHeader(http.StatusNotFound)
+				}
 
-			return "", fmt.Errorf(waResp.ErrorMessage)
+				return "", fmt.Errorf(waResp.ErrorMessage)
+			}
 		}
 
 		return "OTP Code has been sent to your whatsapp", nil

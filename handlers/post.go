@@ -47,7 +47,7 @@ func (authHandler *AuthHandler) Login(rw http.ResponseWriter, r *http.Request) {
 		return
 
 	} else {
-		rw.WriteHeader(http.StatusAccepted)
+		rw.WriteHeader(http.StatusOK)
 		data.ToJSON(&GenericError{Message: succ}, rw)
 
 		return
@@ -84,7 +84,7 @@ func (authHandler *AuthHandler) Register(rw http.ResponseWriter, r *http.Request
 		return
 
 	} else {
-		rw.WriteHeader(http.StatusAccepted)
+		rw.WriteHeader(http.StatusOK)
 		data.ToJSON(&GenericError{Message: succ}, rw)
 
 		return
