@@ -143,7 +143,6 @@ func (authHandler *AuthHandler) RegisterFinal(rw http.ResponseWriter, r *http.Re
 
 	// if transaction error
 	if err != nil {
-		authHandler.logger.Error("Db error", "error", err.Error())
 		rw.WriteHeader(http.StatusBadRequest)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
