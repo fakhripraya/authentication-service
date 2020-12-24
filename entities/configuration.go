@@ -6,7 +6,6 @@ type Configuration struct {
 	Database   DatabaseConfiguration
 	Jwt        JwtConfiguration
 	MySQLStore MySQLStoreConfiguration
-	WA         WASession
 }
 
 // APIConfiguration is an entity that stores the app configuration
@@ -34,14 +33,4 @@ type JwtConfiguration struct {
 // MySQLStoreConfiguration is an entity that stores the MySqlStore secret
 type MySQLStoreConfiguration struct {
 	Secret string
-}
-
-// WASession is an entity that stores a whatsapp session
-type WASession struct {
-	ClientID    string
-	ClientToken string
-	ServerToken string
-	EncKey      []byte
-	MacKey      []byte
-	Wid         string
 }
