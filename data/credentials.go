@@ -107,6 +107,7 @@ func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *
 		return "", err
 	}
 
+	// set the otp to the session
 	session.Options.MaxAge = 86400 * 7
 	session.Values["otp"] = newOTP
 	err = session.Save(r, rw)

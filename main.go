@@ -61,7 +61,7 @@ func main() {
 	data.ConfigInit(&appConfig)
 
 	// creates an Email gRPC service connection WithInsecure
-	emailConn, err := grpc.Dial("localhost:9092", grpc.WithInsecure()) // TODO: put the address in the config
+	emailConn, err := grpc.Dial(appConfig.EmailgRPC.Host+appConfig.EmailgRPC.Port, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -69,7 +69,7 @@ func main() {
 	defer emailConn.Close()
 
 	// creates a WhatsApp gRPC service connection WithInsecure
-	waConn, err := grpc.Dial("localhost:9093", grpc.WithInsecure()) // TODO: put the address in the config
+	waConn, err := grpc.Dial(appConfig.WAgRPC.Host+appConfig.WAgRPC.Port, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
