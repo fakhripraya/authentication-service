@@ -39,7 +39,7 @@ func (authHandler *AuthHandler) Login(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	//generate OTP
-	succ, err := authHandler.credentials.SendOTP(rw, r, &user, authHandler.store, authHandler.emailSender, authHandler.waSender)
+	succ, err := authHandler.credentials.SendOTP(rw, r, &user, authHandler.store)
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -77,7 +77,7 @@ func (authHandler *AuthHandler) Register(rw http.ResponseWriter, r *http.Request
 	}
 
 	// generate OTP
-	succ, err := authHandler.credentials.SendOTP(rw, r, &user, authHandler.store, authHandler.emailSender, authHandler.waSender)
+	succ, err := authHandler.credentials.SendOTP(rw, r, &user, authHandler.store)
 	if err != nil {
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 

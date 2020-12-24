@@ -15,6 +15,7 @@ import (
 	"github.com/fakhripraya/authentication-service/handlers"
 	"github.com/fakhripraya/authentication-service/mailer"
 	protos "github.com/fakhripraya/emailing-service/protos/email"
+	waProtos "github.com/fakhripraya/whatsapp-service/protos/whatsapp"
 	gohandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/hashicorp/go-hclog"
@@ -44,7 +45,7 @@ func Adapt(handler http.Handler, adapters ...Adapter) http.Handler {
 
 func main() {
 
-	// create a structured logger for logging the entire program
+	// creates a structured logger for logging the entire program
 	logger := hclog.Default()
 
 	// load configuration from env file
@@ -59,7 +60,7 @@ func main() {
 	var appConfig entities.Configuration
 	data.ConfigInit(&appConfig)
 
-	// creates a gRPC connection WithInsecure
+	// creates an Email gRPC service connection WithInsecure
 	emailConn, err := grpc.Dial("localhost:9092", grpc.WithInsecure()) // TODO: put the address in the config
 	if err != nil {
 		log.Fatal(err)
@@ -67,8 +68,19 @@ func main() {
 
 	defer emailConn.Close()
 
-	// create gRPC client connection
-	clientConnection := protos.NewEmailClient(emailConn)
+	// creates a WhatsApp gRPC service connection WithInsecure
+	waConn, err := grpc.Dial("localhost:9093", grpc.WithInsecure()) // TODO: put the address in the config
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer waConn.Close()
+
+	// creates an Email gRPC service client connection
+	emailConnClient := protos.NewEmailClient(emailConn)
+
+	// creates a WhatsApp gRPC service client connection
+	waConnClient := waProtos.NewWhatsAppClient(waConn)
 
 	// Open the database connection based on DB configuration
 	logger.Info("Establishing database connection on DB : " + appConfig.Database.Host + ":" + strconv.Itoa(appConfig.Database.Port))
@@ -77,12 +89,13 @@ func main() {
 		logger.Error("Error while establishing database connection", "error", err.Error())
 		log.Fatal(err)
 	}
+
 	defer config.DB.Close()
 
 	// Migrate all the defined table into the database
 	data.MigrateDB(config.DB)
 
-	// Create a session store based on MYSQL database
+	// Creates a session store based on MYSQL database
 	// If table doesn't exist, creates a new one
 	logger.Info("Building session store based on DB : " + appConfig.Database.Host + ":" + strconv.Itoa(appConfig.Database.Port))
 	sessionStore, err = mysqlstore.NewMySQLStore(config.DbURL(config.BuildDBConfig(&appConfig.Database)), "dbMasterSession", "/", 3600*24*7, []byte(appConfig.MySQLStore.Secret))
@@ -93,23 +106,16 @@ func main() {
 
 	defer sessionStore.Close()
 
-	// create a whatsapp login / fetch current session
-	waSender, err := mailer.NewWA(logger)
-	if err != nil {
-		logger.Error("Error while establishing WhatsApp connection", "error", err.Error())
-		log.Fatal(err)
-	}
+	// creates an email handler
+	emailHandler := mailer.NewEmail(logger)
 
-	// create an email smtp protocol
-	emailSender := mailer.NewEmail(logger)
+	// creates a credentials instance
+	credentials := data.NewCredentials(waConnClient, emailConnClient, emailHandler, logger)
 
-	// create a credentials instance
-	credentials := data.NewCredentials(clientConnection, logger)
+	// creates the handlers
+	authHandler := handlers.NewAuth(logger, credentials, sessionStore)
 
-	// create the handlers
-	authHandler := handlers.NewAuth(logger, credentials, sessionStore, emailSender, waSender)
-
-	// create a new serve mux
+	// creates a new serve mux
 	serveMux := mux.NewRouter()
 
 	// handlers for the API
@@ -133,7 +139,7 @@ func main() {
 	// CORS
 	corsHandler := gohandlers.CORS(gohandlers.AllowedOrigins([]string{"*"}))
 
-	// create a new server
+	// creates a new server
 	server := http.Server{
 		Addr:         appConfig.API.Host + ":" + strconv.Itoa(appConfig.API.Port), // configure the bind address
 		Handler:      corsHandler(serveMux),                                       // set the default handler

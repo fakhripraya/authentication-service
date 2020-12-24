@@ -8,12 +8,11 @@ import (
 	"strconv"
 	"time"
 
-	protos "github.com/fakhripraya/emailing-service/protos/email"
-
 	"github.com/fakhripraya/authentication-service/mailer"
 	"github.com/fakhripraya/authentication-service/migrate"
+	protos "github.com/fakhripraya/emailing-service/protos/email"
+	waProtos "github.com/fakhripraya/whatsapp-service/protos/whatsapp"
 
-	"github.com/Rhymen/go-whatsapp"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/hashicorp/go-hclog"
 	"github.com/srinathgs/mysqlstore"
@@ -27,13 +26,15 @@ type Claims struct {
 
 // Credentials defines a struct for credentials flow
 type Credentials struct {
-	emailClient protos.EmailClient
-	logger      hclog.Logger
+	waClient     waProtos.WhatsAppClient
+	emailClient  protos.EmailClient
+	emailHandler *mailer.Email
+	logger       hclog.Logger
 }
 
 // NewCredentials is a function to create new credentials struct
-func NewCredentials(emailClient protos.EmailClient, newLogger hclog.Logger) *Credentials {
-	return &Credentials{emailClient, newLogger}
+func NewCredentials(waClient waProtos.WhatsAppClient, emailClient protos.EmailClient, emailHandler *mailer.Email, newLogger hclog.Logger) *Credentials {
+	return &Credentials{waClient, emailClient, emailHandler, newLogger}
 }
 
 // GenerateJWT Generates a JWT token by validating the signing key
@@ -96,7 +97,7 @@ func (cred *Credentials) GenerateOTP() string {
 }
 
 // SendOTP is a function to send OTP to either users email or phone number (WA)
-func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *migrate.MasterUser, store *mysqlstore.MySQLStore, emailSender *mailer.Email, waSender *mailer.Whatsapp) (string, error) {
+func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *migrate.MasterUser, store *mysqlstore.MySQLStore) (string, error) {
 	// generate OTP
 	newOTP := cred.GenerateOTP()
 
@@ -127,7 +128,7 @@ func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *
 		}
 
 		// parse an email template
-		template, err := emailSender.ParseTemplate("/mailer/OTPVerification.html", data)
+		template, err := cred.emailHandler.ParseTemplate("/mailer/OTPVerification.html", data)
 		if err != nil {
 			return "", err
 		}
@@ -149,24 +150,27 @@ func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *
 			if resp.ErrorCode == "500" {
 				rw.WriteHeader(http.StatusInternalServerError)
 			}
+
 			return "", fmt.Errorf(resp.ErrorMessage)
 		}
 
 	} else {
 		// if with phone (WA)
-		// set the WA target info
-		text := whatsapp.TextMessage{
-			Info: whatsapp.MessageInfo{
-				RemoteJid: user.Username + "@s.whatsapp.net",
-			},
-			Text: "kode verifikasi akun Indekos anda adalah " + newOTP,
+
+		// send WhatsApp through gRPC service
+		war := &waProtos.WARequest{
+			RemoteJid: user.Username + "@s.whatsapp.net",
+			Text:      "kode verifikasi akun Indekos anda adalah " + newOTP,
 		}
 
-		// send the WA text
-		_, err := waSender.Wac.Send(text)
-		if err != nil {
-			rw.WriteHeader(http.StatusNotFound)
-			return "", err
+		waResp, _ := cred.waClient.SendWhatsApp(context.Background(), war)
+
+		if waResp != nil {
+			if waResp.ErrorCode == "404" {
+				rw.WriteHeader(http.StatusNotFound)
+			}
+
+			return "", fmt.Errorf(waResp.ErrorMessage)
 		}
 
 		return "OTP Code has been sent to your whatsapp", nil
