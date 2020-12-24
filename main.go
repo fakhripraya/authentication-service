@@ -60,15 +60,15 @@ func main() {
 	data.ConfigInit(&appConfig)
 
 	// creates a gRPC connection WithInsecure
-	conn, err := grpc.Dial("localhost:9092", grpc.WithInsecure())
+	emailConn, err := grpc.Dial("localhost:9092", grpc.WithInsecure()) // TODO: put the address in the config
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer conn.Close()
+	defer emailConn.Close()
 
 	// create gRPC client connection
-	clientConnection := protos.NewEmailClient(conn)
+	clientConnection := protos.NewEmailClient(emailConn)
 
 	// Open the database connection based on DB configuration
 	logger.Info("Establishing database connection on DB : " + appConfig.Database.Host + ":" + strconv.Itoa(appConfig.Database.Port))
