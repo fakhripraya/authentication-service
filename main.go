@@ -61,7 +61,7 @@ func main() {
 	data.ConfigInit(&appConfig)
 
 	// creates an Email gRPC service connection WithInsecure
-	logger.Info("Establishing Email gRPC Connection on : " + appConfig.EmailgRPC.Host + ":" + appConfig.EmailgRPC.Port)
+	logger.Info("Establishing Email gRPC Connection on " + appConfig.EmailgRPC.Host + ":" + appConfig.EmailgRPC.Port)
 	emailConn, err := grpc.Dial(appConfig.EmailgRPC.Host+":"+appConfig.EmailgRPC.Port, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
@@ -70,7 +70,7 @@ func main() {
 	defer emailConn.Close()
 
 	// creates a WhatsApp gRPC service connection WithInsecure
-	logger.Info("Establishing WhatsApp gRPC Connection on : " + appConfig.WAgRPC.Host + ":" + appConfig.WAgRPC.Port)
+	logger.Info("Establishing WhatsApp gRPC Connection on " + appConfig.WAgRPC.Host + ":" + appConfig.WAgRPC.Port)
 	waConn, err := grpc.Dial(appConfig.WAgRPC.Host+":"+appConfig.WAgRPC.Port, grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
@@ -85,7 +85,7 @@ func main() {
 	waConnClient := waProtos.NewWhatsAppClient(waConn)
 
 	// Open the database connection based on DB configuration
-	logger.Info("Establishing database connection on DB : " + appConfig.Database.Host + ":" + strconv.Itoa(appConfig.Database.Port))
+	logger.Info("Establishing database connection on " + appConfig.Database.Host + ":" + strconv.Itoa(appConfig.Database.Port))
 	config.DB, err = gorm.Open("mysql", config.DbURL(config.BuildDBConfig(&appConfig.Database)))
 	if err != nil {
 		logger.Error("Error while establishing database connection", "error", err.Error())
@@ -99,7 +99,7 @@ func main() {
 
 	// Creates a session store based on MYSQL database
 	// If table doesn't exist, creates a new one
-	logger.Info("Building session store based on DB : " + appConfig.Database.Host + ":" + strconv.Itoa(appConfig.Database.Port))
+	logger.Info("Building session store based on " + appConfig.Database.Host + ":" + strconv.Itoa(appConfig.Database.Port))
 	sessionStore, err = mysqlstore.NewMySQLStore(config.DbURL(config.BuildDBConfig(&appConfig.Database)), "dbMasterSession", "/", 3600*24*7, []byte(appConfig.MySQLStore.Secret))
 	if err != nil {
 		logger.Error("Error while building application session store", "error", err.Error())
