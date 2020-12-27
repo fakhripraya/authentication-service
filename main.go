@@ -154,7 +154,7 @@ func main() {
 
 	// start the server
 	go func() {
-		logger.Info("Starting server on port " + strconv.Itoa(appConfig.API.Port))
+		logger.Info("Starting server on port " + appConfig.API.Host + ":" + strconv.Itoa(appConfig.API.Port))
 
 		err = server.ListenAndServe()
 		if err != nil {

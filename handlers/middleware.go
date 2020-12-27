@@ -26,6 +26,13 @@ func (authHandler *AuthHandler) MiddlewareValidateAuth(next http.Handler) http.H
 			return
 		}
 
+		// check the token from the session
+		// if token available, get the token from the session
+		if session.Values["token"] == nil {
+			rw.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
 		// determine the cookie value that holds the token
 		tokenString := session.Values["token"].(string)
 
