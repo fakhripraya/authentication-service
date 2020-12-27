@@ -44,14 +44,13 @@ func (authHandler *AuthHandler) Login(rw http.ResponseWriter, r *http.Request) {
 		rw.WriteHeader(http.StatusInternalServerError)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
-		return
-
 	} else {
 		rw.WriteHeader(http.StatusOK)
 		data.ToJSON(&GenericError{Message: succ}, rw)
 
-		return
 	}
+
+	return
 }
 
 // Register to create a new user and register it to a database endpoint
@@ -80,15 +79,12 @@ func (authHandler *AuthHandler) Register(rw http.ResponseWriter, r *http.Request
 	succ, err := authHandler.credentials.SendOTP(rw, r, &user, authHandler.store)
 	if err != nil {
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-		return
-
 	} else {
 		rw.WriteHeader(http.StatusOK)
 		data.ToJSON(&GenericError{Message: succ}, rw)
-
-		return
 	}
+
+	return
 }
 
 // RegisterFinal is the final point of the registration function
