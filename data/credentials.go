@@ -167,6 +167,7 @@ func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *
 				}
 				return "", fmt.Errorf(resp.ErrorMessage)
 			}
+
 			return "OTP Code has been sent to your email", nil
 		}
 	} else {
@@ -182,12 +183,16 @@ func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *
 
 		if waResp != nil {
 			if waResp.ErrorCode != "200" {
-				if waResp.ErrorCode == "404" {
-					rw.WriteHeader(http.StatusNotFound)
+				if waResp.ErrorCode == "400" {
+					rw.WriteHeader(http.StatusBadRequest)
+				}
+				if waResp.ErrorCode == "500" {
+					rw.WriteHeader(http.StatusInternalServerError)
 				}
 
 				return "", fmt.Errorf(waResp.ErrorMessage)
 			}
+
 			return "OTP Code has been sent to your whatsapp", nil
 		}
 	}
