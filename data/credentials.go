@@ -2,8 +2,9 @@ package data
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -84,21 +85,34 @@ func (cred *Credentials) GenerateJWT(rw http.ResponseWriter, r *http.Request, st
 }
 
 // GenerateOTP Generates an OTP code string
-func (cred *Credentials) GenerateOTP() string {
+func (cred *Credentials) GenerateOTP() (string, error) {
 
-	// Generates a random number from 0 - 999999
-	ranNum := rand.Intn(999999-10000) + 10000
+	var max int = 4
+	var table = [...]byte{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'}
 
-	// Convert the random number to string
-	otp := strconv.Itoa(ranNum)
+	b := make([]byte, max)
+	n, err := io.ReadAtLeast(rand.Reader, b, max)
+	if n != max {
+		return "", err
+	}
+	for i := 0; i < len(b); i++ {
+		b[i] = table[int(b[i])%len(table)]
+	}
 
-	return otp
+	// returns the crypted otp number
+	return string(b), nil
+
 }
 
 // SendOTP is a function to send OTP to either users email or phone number (WA)
 func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *migrate.MasterUser, store *mysqlstore.MySQLStore) (string, error) {
 	// generate OTP
-	newOTP := cred.GenerateOTP()
+	newOTP, err := cred.GenerateOTP()
+
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		return "", err
+	}
 
 	// Get a session (existing/new)
 	session, err := store.Get(r, "session-name")
@@ -151,11 +165,10 @@ func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *
 				if resp.ErrorCode == "500" {
 					rw.WriteHeader(http.StatusInternalServerError)
 				}
-
 				return "", fmt.Errorf(resp.ErrorMessage)
 			}
+			return "OTP Code has been sent to your email", nil
 		}
-
 	} else {
 		// if with phone (WA)
 
@@ -175,9 +188,10 @@ func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *
 
 				return "", fmt.Errorf(waResp.ErrorMessage)
 			}
+			return "OTP Code has been sent to your whatsapp", nil
 		}
-
-		return "OTP Code has been sent to your whatsapp", nil
 	}
-	return "OTP Code has been sent to your email", nil
+
+	rw.WriteHeader(http.StatusInternalServerError)
+	return "", fmt.Errorf("Something went wrong")
 }

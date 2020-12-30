@@ -122,21 +122,35 @@ func main() {
 
 	// handlers for the API
 	logger.Info("Setting handlers for the API")
+
+	// get handlers
 	getRequest := serveMux.Methods(http.MethodGet).Subrouter()
+
+	// get user handler
 	getRequest.HandleFunc("/", authHandler.GetInfo)
+
+	// get global middleware
 	getRequest.Use(authHandler.MiddlewareValidateAuth)
 
+	// post handlers
 	postRequest := serveMux.Methods(http.MethodPost).Subrouter()
-	postRequest.HandleFunc("/login", authHandler.Login)
+
+	// register post handler
 	postRequest.HandleFunc("/register", authHandler.Register)
 	postRequest.HandleFunc("/register/check", Adapt(
-		http.HandlerFunc(authHandler.RegisterFinal),
+		http.HandlerFunc(authHandler.OtpValidate),
 		authHandler.MiddlewareCheckOTP,
 	).ServeHTTP)
+	postRequest.HandleFunc("/register/create", authHandler.RegisterFinal)
+
+	// login post handler
+	postRequest.HandleFunc("/login", authHandler.Login)
 	postRequest.HandleFunc("/login/check", Adapt(
 		http.HandlerFunc(authHandler.LoginFinal),
 		authHandler.MiddlewareCheckOTP,
 	).ServeHTTP)
+
+	// post global middleware
 	postRequest.Use(authHandler.MiddlewareParseCredentialsRequest)
 
 	// CORS
