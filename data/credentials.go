@@ -165,12 +165,13 @@ func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *
 				if resp.ErrorCode == "500" {
 					rw.WriteHeader(http.StatusInternalServerError)
 				}
+
 				return "", fmt.Errorf(resp.ErrorMessage)
 			}
 
 			return "OTP Code has been sent to your email", nil
 		}
-	} else {
+	} else if mailer.IsWhatsAppValid(user.Username) {
 		// if with phone (WA)
 
 		// send WhatsApp through gRPC service
@@ -193,10 +194,16 @@ func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *
 				return "", fmt.Errorf(waResp.ErrorMessage)
 			}
 
-			return "OTP Code has been sent to your whatsapp", nil
+			return "OTP Code has been sent to your WhatsApp", nil
 		}
+	} else {
+
+		// if the username neither phone number nor email
+		rw.WriteHeader(http.StatusBadRequest)
+		return "", fmt.Errorf("Invalid phone number / email")
 	}
 
+	// throws internal server error if validation fails
 	rw.WriteHeader(http.StatusInternalServerError)
 	return "", fmt.Errorf("Something went wrong")
 }

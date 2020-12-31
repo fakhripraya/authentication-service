@@ -12,7 +12,11 @@ import (
 	"github.com/hashicorp/go-hclog"
 )
 
+// emailRegex is a regular expression to match standard email structure
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+
+// waRegex is a regular expression to match standard phone structure
+var waRegex = regexp.MustCompile(`\+?([ -]?\d+)+|\(\d+\)([ -]\d+)`)
 
 // Email is a struct for email variable
 type Email struct {
@@ -50,16 +54,39 @@ func (email *Email) ParseTemplate(templateFileName string, data interface{}) (st
 // IsEmailValid checks if the email provided passes the required structure
 // and length test. It also checks the domain has a valid MX record.
 func IsEmailValid(email string) bool {
+
+	// length test
 	if len(email) < 3 && len(email) > 254 {
 		return false
 	}
+
+	// regex test
 	if !emailRegex.MatchString(email) {
 		return false
 	}
+
+	// MX record test
 	parts := strings.Split(email, "@")
 	mx, err := net.LookupMX(parts[1])
 	if err != nil || len(mx) == 0 {
 		return false
 	}
+
+	return true
+}
+
+// IsWhatsAppValid checks if the WA provided passes the required structure
+// and length test.
+func IsWhatsAppValid(waNumber string) bool {
+	// length test
+	if len(waNumber) < 8 {
+		return false
+	}
+
+	// regex test
+	if !waRegex.MatchString(waNumber) {
+		return false
+	}
+
 	return true
 }
