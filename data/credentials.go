@@ -187,6 +187,9 @@ func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *
 				if waResp.ErrorCode == "400" {
 					rw.WriteHeader(http.StatusBadRequest)
 				}
+				if waResp.ErrorCode == "404" {
+					rw.WriteHeader(http.StatusNotFound)
+				}
 				if waResp.ErrorCode == "500" {
 					rw.WriteHeader(http.StatusInternalServerError)
 				}
