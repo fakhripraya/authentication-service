@@ -9,8 +9,8 @@ type MasterUser struct {
 	Username       string    `gorm:"unique;not null" json:"username"`
 	DisplayName    string    `gorm:"not null" json:"displayname"`
 	Password       []byte    `json:"password"`
-	Email          string    `gorm:"unique" json:"email"`
-	Phone          string    `gorm:"unique" json:"phone"`
+	Email          string    `json:"email"`
+	Phone          string    `json:"phone"`
 	LoginFailCount uint      `gorm:"default:0"`
 	IsVerified     bool      `gorm:"default:false" json:"is_verified"`
 	IsActive       bool      `gorm:"default:true" json:"is_active"`
