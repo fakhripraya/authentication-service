@@ -88,7 +88,6 @@ func main() {
 	logger.Info("Establishing database connection on " + appConfig.Database.Host + ":" + strconv.Itoa(appConfig.Database.Port))
 	config.DB, err = gorm.Open("mysql", config.DbURL(config.BuildDBConfig(&appConfig.Database)))
 	if err != nil {
-		logger.Error("Error while establishing database connection", "error", err.Error())
 		log.Fatal(err)
 	}
 
@@ -102,7 +101,6 @@ func main() {
 	logger.Info("Building session store based on " + appConfig.Database.Host + ":" + strconv.Itoa(appConfig.Database.Port))
 	sessionStore, err = mysqlstore.NewMySQLStore(config.DbURL(config.BuildDBConfig(&appConfig.Database)), "dbMasterSession", "/", 3600*24*7, []byte(appConfig.MySQLStore.Secret))
 	if err != nil {
-		logger.Error("Error while building application session store", "error", err.Error())
 		log.Fatal(err)
 	}
 

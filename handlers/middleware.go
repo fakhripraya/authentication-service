@@ -45,7 +45,8 @@ func (authHandler *AuthHandler) MiddlewareValidateAuth(next http.Handler) http.H
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 					return nil, fmt.Errorf("Error while parsing the token with claims")
 				}
-				return data.MySigningKey, nil
+
+				return []byte(data.MySigningKey), nil
 			})
 
 			if err != nil {
@@ -72,7 +73,7 @@ func (authHandler *AuthHandler) MiddlewareValidateAuth(next http.Handler) http.H
 
 				token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-				tokenString, err := token.SignedString(data.MySigningKey)
+				tokenString, err := token.SignedString([]byte(data.MySigningKey))
 
 				if err != nil {
 					rw.WriteHeader(http.StatusInternalServerError)

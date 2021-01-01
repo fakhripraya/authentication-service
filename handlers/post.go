@@ -16,7 +16,6 @@ import (
 
 // OtpValidate is a method to validate otp check middleware
 func (authHandler *AuthHandler) OtpValidate(rw http.ResponseWriter, r *http.Request) {
-	authHandler.logger.Info("Handling otp validate")
 
 	// return status 200 if otp middleware passed
 	rw.WriteHeader(http.StatusOK)
