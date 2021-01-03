@@ -208,5 +208,5 @@ func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *
 
 	// throws internal server error if validation fails
 	rw.WriteHeader(http.StatusInternalServerError)
-	return "", fmt.Errorf("Something went wrong, please try to use both email or phone number instead")
+	return "", fmt.Errorf("Something went wrong, please try to use either email or phone number instead")
 }

@@ -182,7 +182,7 @@ func main() {
 
 	// Block until a signal is received.
 	sig := <-channel
-	log.Println("Got signal:", sig)
+	logger.Info("Got signal", "info", sig)
 
 	// gracefully shutdown the server, waiting max 30 seconds for current operations to complete
 	ctx, _ := context.WithTimeout(context.Background(), 30*time.Second)
