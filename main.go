@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/fakhripraya/authentication-service/config"
@@ -170,8 +171,13 @@ func main() {
 
 		err = server.ListenAndServe()
 		if err != nil {
-			logger.Error("Error starting server", "error", err.Error())
-			os.Exit(1)
+
+			if strings.Contains(err.Error(), "http: Server closed") == true {
+				os.Exit(0)
+			} else {
+				logger.Error("Error starting server", "error", err.Error())
+				os.Exit(1)
+			}
 		}
 	}()
 
