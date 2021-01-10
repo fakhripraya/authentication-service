@@ -22,7 +22,6 @@ func (authHandler *AuthHandler) MiddlewareValidateAuth(next http.Handler) http.H
 			rw.WriteHeader(http.StatusInternalServerError)
 			data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
-			// TODO: redirect to login
 			return
 		}
 
@@ -54,14 +53,12 @@ func (authHandler *AuthHandler) MiddlewareValidateAuth(next http.Handler) http.H
 					rw.WriteHeader(http.StatusUnauthorized)
 					data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
-					// TODO: redirect to login
 					return
 				}
 
 				rw.WriteHeader(http.StatusBadRequest)
 				data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
-				// TODO: redirect to login
 				return
 			}
 
@@ -77,13 +74,13 @@ func (authHandler *AuthHandler) MiddlewareValidateAuth(next http.Handler) http.H
 					rw.WriteHeader(http.StatusInternalServerError)
 					data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
-					// TODO: redirect to login
 					return
 				}
 
 				// renew the token in the session
 				session.Options.MaxAge = 86400 * 7
 				session.Values["token"] = tokenString
+				session.Values["userLoggedin"] = claims.Username
 				session.Save(r, rw)
 
 				next.ServeHTTP(rw, r)
@@ -91,14 +88,12 @@ func (authHandler *AuthHandler) MiddlewareValidateAuth(next http.Handler) http.H
 				rw.WriteHeader(http.StatusUnauthorized)
 				data.ToJSON(&GenericError{Message: "Token invalid"}, rw)
 
-				// TODO: redirect to login
 				return
 			}
 		} else {
 			rw.WriteHeader(http.StatusUnauthorized)
 			data.ToJSON(&GenericError{Message: "Token invalid"}, rw)
 
-			// TODO: redirect to login
 			return
 		}
 	})
