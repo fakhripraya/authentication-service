@@ -21,7 +21,7 @@ import (
 
 // Claims determine the token holder
 type Claims struct {
-	Username string `json:"username"`
+	Username string
 	jwt.StandardClaims
 }
 
