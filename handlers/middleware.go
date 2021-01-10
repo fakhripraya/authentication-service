@@ -66,13 +66,11 @@ func (authHandler *AuthHandler) MiddlewareValidateAuth(next http.Handler) http.H
 			}
 
 			if token.Valid {
+
 				// create a new token for the current use, with a renewed expiration time
 				expirationTime := time.Now().Add(time.Second * 86400 * 7)
-
 				claims.StandardClaims.ExpiresAt = expirationTime.Unix()
-
 				token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
 				tokenString, err := token.SignedString([]byte(data.MySigningKey))
 
 				if err != nil {
@@ -124,7 +122,7 @@ func (authHandler *AuthHandler) MiddlewareParseCredentialsRequest(next http.Hand
 			return
 		}
 
-		// add the product to the context
+		// add the credentials to the context
 		ctx := context.WithValue(r.Context(), KeyCredentials{}, cred)
 		r = r.WithContext(ctx)
 

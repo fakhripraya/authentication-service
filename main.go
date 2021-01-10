@@ -114,7 +114,7 @@ func main() {
 	credentials := data.NewCredentials(waConnClient, emailConnClient, emailHandler, logger)
 
 	// creates the handlers
-	authHandler := handlers.NewAuth(logger, credentials, sessionStore)
+	authHandler := handlers.NewAuthHandler(logger, credentials, sessionStore)
 
 	// creates a new serve mux
 	serveMux := mux.NewRouter()

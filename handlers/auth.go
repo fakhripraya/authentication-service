@@ -17,8 +17,8 @@ type AuthHandler struct {
 	store       *mysqlstore.MySQLStore
 }
 
-// NewAuth returns a new Auth handler with the given logger
-func NewAuth(newLogger hclog.Logger, newCredentials *data.Credentials, newStore *mysqlstore.MySQLStore) *AuthHandler {
+// NewAuthHandler returns a new Auth handler with the given logger
+func NewAuthHandler(newLogger hclog.Logger, newCredentials *data.Credentials, newStore *mysqlstore.MySQLStore) *AuthHandler {
 	return &AuthHandler{newLogger, newCredentials, newStore}
 }
 

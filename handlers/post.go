@@ -154,7 +154,7 @@ func (authHandler *AuthHandler) RegisterFinal(rw http.ResponseWriter, r *http.Re
 	}
 
 	// generate a JWT token for securing http request
-	if err := authHandler.credentials.GenerateJWT(rw, r, authHandler.store, "username"); err != nil {
+	if err := authHandler.credentials.GenerateJWT(rw, r, authHandler.store, cred.Username); err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
