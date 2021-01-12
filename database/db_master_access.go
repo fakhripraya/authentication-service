@@ -1,8 +1,8 @@
-package migrate
+package database
 
 import "time"
 
-// MasterAccess will migrate a master access table with the given specification into the database
+// MasterAccess is an entity that directly communicate with the MasterAccess table in the database
 type MasterAccess struct {
 	ID         uint      `gorm:"primary_key;autoIncrement;not null" json:"id"`
 	RoleID     uint      `gorm:"not null" json:"role_id"`
@@ -14,7 +14,7 @@ type MasterAccess struct {
 	ModifiedBy string    `json:"modified_by"`
 }
 
-// TableName set the migrated struct table name
-func (user *MasterAccess) TableName() string {
+// MasterAccessTable set the migrated struct table name
+func (masterAccess *MasterAccess) MasterAccessTable() string {
 	return "dbMasterAccess"
 }

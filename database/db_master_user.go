@@ -1,8 +1,8 @@
-package migrate
+package database
 
 import "time"
 
-// MasterUser will migrate a master user table with the given specification into the database
+// MasterUser is an entity that directly communicate with the MasterUser table in the database
 type MasterUser struct {
 	ID             uint      `gorm:"primaryKey;not null;autoIncrement" json:"id"`
 	RoleID         uint      `gorm:"not null" json:"role_id"`
@@ -20,7 +20,7 @@ type MasterUser struct {
 	ModifiedBy     string    `json:"modified_by"`
 }
 
-// TableName set the migrated struct table name
-func (user *MasterUser) TableName() string {
+// MasterUserTable set the migrated struct table name
+func (masterUser *MasterUser) MasterUserTable() string {
 	return "dbMasterUser"
 }

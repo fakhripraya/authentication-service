@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/fakhripraya/authentication-service/database"
 	"github.com/fakhripraya/authentication-service/mailer"
-	"github.com/fakhripraya/authentication-service/migrate"
 	protos "github.com/fakhripraya/emailing-service/protos/email"
 	waProtos "github.com/fakhripraya/whatsapp-service/protos/whatsapp"
 
@@ -105,7 +105,7 @@ func (cred *Credentials) GenerateOTP() (string, error) {
 }
 
 // SendOTP is a function to send OTP to either users email or phone number (WA)
-func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *migrate.MasterUser, store *mysqlstore.MySQLStore) (string, error) {
+func (cred *Credentials) SendOTP(rw http.ResponseWriter, r *http.Request, user *database.MasterUser, store *mysqlstore.MySQLStore) (string, error) {
 	// generate OTP
 	newOTP, err := cred.GenerateOTP()
 

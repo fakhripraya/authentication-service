@@ -94,9 +94,6 @@ func main() {
 
 	defer config.DB.Close()
 
-	// Migrate all the defined table into the database
-	data.MigrateDB(config.DB)
-
 	// Creates a session store based on MYSQL database
 	// If table doesn't exist, creates a new one
 	logger.Info("Building session store based on " + appConfig.Database.Host + ":" + strconv.Itoa(appConfig.Database.Port))

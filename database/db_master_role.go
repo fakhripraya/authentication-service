@@ -1,8 +1,8 @@
-package migrate
+package database
 
 import "time"
 
-// MasterRole will migrate a master role table with the given specification into the database
+// MasterRole is an entity that directly communicate with the MasterRole table in the database
 type MasterRole struct {
 	ID         uint      `gorm:"primaryKey;not null;autoIncrement" json:"id"`
 	Name       string    `gorm:"unique;not null" json:"role_name"`
@@ -13,7 +13,7 @@ type MasterRole struct {
 	ModifiedBy string    `json:"modified_by"`
 }
 
-// TableName set the migrated struct table name
-func (user *MasterRole) TableName() string {
+// MasterRoleTable set the migrated struct table name
+func (masterRole *MasterRole) MasterRoleTable() string {
 	return "dbMasterRole"
 }

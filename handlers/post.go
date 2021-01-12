@@ -6,9 +6,9 @@ import (
 
 	"github.com/fakhripraya/authentication-service/config"
 	"github.com/fakhripraya/authentication-service/data"
+	"github.com/fakhripraya/authentication-service/database"
 	"github.com/fakhripraya/authentication-service/entities"
 	"github.com/fakhripraya/authentication-service/mailer"
-	"github.com/fakhripraya/authentication-service/migrate"
 
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
@@ -29,7 +29,7 @@ func (authHandler *AuthHandler) Login(rw http.ResponseWriter, r *http.Request) {
 
 	// work with database
 	// looking for an existing user by matching user credentials
-	var user migrate.MasterUser
+	var user database.MasterUser
 	if err := config.DB.Where("username = ?", cred.Username).First(&user).Error; err != nil {
 		rw.WriteHeader(http.StatusNotFound)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
@@ -69,7 +69,7 @@ func (authHandler *AuthHandler) Register(rw http.ResponseWriter, r *http.Request
 
 	// work with database
 	// looking for an existing user , if not exist then create a new one
-	var user migrate.MasterUser
+	var user database.MasterUser
 	if err := config.DB.Where("username = ?", cred.Username).First(&user).Error; err == nil {
 		rw.WriteHeader(http.StatusForbidden)
 		data.ToJSON(&GenericError{Message: "Username already exist"}, rw)
@@ -78,7 +78,7 @@ func (authHandler *AuthHandler) Register(rw http.ResponseWriter, r *http.Request
 	}
 
 	// map the user credentials
-	user = migrate.MasterUser{
+	user = database.MasterUser{
 		Username: cred.Username,
 		Password: []byte(cred.Password),
 	}
@@ -103,7 +103,7 @@ func (authHandler *AuthHandler) RegisterFinal(rw http.ResponseWriter, r *http.Re
 
 	// work with database
 	// looking for an existing user , if not exist then create a new one
-	var user migrate.MasterUser
+	var user database.MasterUser
 	if err := config.DB.Where("username = ?", cred.Username).First(&user).Error; err == nil {
 		rw.WriteHeader(http.StatusForbidden)
 		data.ToJSON(&GenericError{Message: "Username already exist"}, rw)
@@ -114,7 +114,7 @@ func (authHandler *AuthHandler) RegisterFinal(rw http.ResponseWriter, r *http.Re
 	// proceed to create the new user with transaction scope
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 		// do some database operations in the transaction (use 'tx' from this point, not 'db')
-		var newUser migrate.MasterUser
+		var newUser database.MasterUser
 		var dbErr error
 
 		newUser.RoleID = 1
