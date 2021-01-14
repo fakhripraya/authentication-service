@@ -8,7 +8,7 @@ type MasterUser struct {
 	RoleID         uint      `gorm:"not null" json:"role_id"`
 	Username       string    `gorm:"unique;not null" json:"username"`
 	DisplayName    string    `gorm:"not null" json:"displayname"`
-	Password       []byte    `json:"password"`
+	Password       []byte    `gorm:"not null" json:"password"`
 	Email          string    `json:"email"`
 	Phone          string    `json:"phone"`
 	LoginFailCount uint      `gorm:"default:0"`
