@@ -8,6 +8,7 @@ type MasterUserLogin struct {
 	UserID        uint      `gorm:"not null" json:"user_id"`
 	LoginProvider string    `gorm:"not null" json:"login_provider"`
 	ProviderKey   string    `gorm:"not null" json:"provider_key"`
+	IsActive      bool      `gorm:"default:true" json:"is_active"`
 	Created       time.Time `gorm:"type:datetime" json:"created"`
 	CreatedBy     string    `json:"created_by"`
 	Modified      time.Time `gorm:"type:datetime" json:"modified"`
