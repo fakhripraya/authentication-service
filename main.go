@@ -59,7 +59,12 @@ func main() {
 
 	// Initialize app configuration
 	var appConfig entities.Configuration
-	data.ConfigInit(&appConfig)
+	err = data.ConfigInit(&appConfig)
+
+	if err != nil {
+		// log the fatal error if config init failed
+		log.Fatal(err)
+	}
 
 	// creates an Email gRPC service connection WithInsecure
 	logger.Info("Establishing Email gRPC Connection on " + appConfig.EmailgRPC.Host + ":" + appConfig.EmailgRPC.Port)
