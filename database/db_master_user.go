@@ -12,8 +12,8 @@ type MasterUser struct {
 	Email          string    `json:"email"`
 	Phone          string    `json:"phone"`
 	LoginFailCount uint      `gorm:"default:0"`
-	IsVerified     bool      `gorm:"default:false" json:"is_verified"`
-	IsActive       bool      `gorm:"default:true" json:"is_active"`
+	IsVerified     bool      `gorm:"not null;default:false" json:"is_verified"`
+	IsActive       bool      `gorm:"not null;default:true" json:"is_active"`
 	Created        time.Time `gorm:"type:datetime" json:"created"`
 	CreatedBy      string    `json:"created_by"`
 	Modified       time.Time `gorm:"type:datetime" json:"modified"`
