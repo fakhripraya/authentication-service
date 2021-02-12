@@ -69,6 +69,7 @@ func (authHandler *AuthHandler) Register(rw http.ResponseWriter, r *http.Request
 
 	// work with database
 	// looking for an existing user , if not exist then create a new one
+	// TODO: change 0 to 62 if input is phone number
 	var user database.MasterUser
 	if err := config.DB.Where("username = ?", cred.Username).First(&user).Error; err == nil {
 		rw.WriteHeader(http.StatusForbidden)
