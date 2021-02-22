@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/fakhripraya/authentication-service/config"
 	"github.com/fakhripraya/authentication-service/database"
 	"github.com/fakhripraya/authentication-service/mailer"
 	protos "github.com/fakhripraya/emailing-service/protos/email"
@@ -36,6 +37,38 @@ type Credentials struct {
 // NewCredentials is a function to create new credentials struct
 func NewCredentials(waClient waProtos.WhatsAppClient, emailClient protos.EmailClient, emailHandler *mailer.Email, newLogger hclog.Logger) *Credentials {
 	return &Credentials{waClient, emailClient, emailHandler, newLogger}
+}
+
+// GetCurrentUser will get the current user login info
+func (cred *Credentials) GetCurrentUser(rw http.ResponseWriter, r *http.Request, store *mysqlstore.MySQLStore) (*database.MasterUser, error) {
+
+	// Get a session (existing/new)
+	session, err := store.Get(r, "session-name")
+	if err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+
+		return nil, err
+	}
+
+	// check the logged in user from the session
+	// if user available, get the user info from the session
+	if session.Values["userLoggedin"] == nil {
+		rw.WriteHeader(http.StatusUnauthorized)
+
+		return nil, fmt.Errorf("Error 401")
+	}
+
+	// work with database
+	// look for the current user logged in in the db
+	var currentUser database.MasterUser
+	if err := config.DB.Where("username = ?", session.Values["userLoggedin"].(string)).First(&currentUser).Error; err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+
+		return nil, err
+	}
+
+	return &currentUser, nil
+
 }
 
 // GenerateJWT Generates a JWT token by validating the signing key

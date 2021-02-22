@@ -128,7 +128,7 @@ func main() {
 	getRequest := serveMux.Methods(http.MethodGet).Subrouter()
 
 	// get user handler
-	getRequest.HandleFunc("/", authHandler.GetInfo)
+	getRequest.HandleFunc("/", authHandler.GetAuthUser)
 
 	// get global middleware
 	getRequest.Use(authHandler.MiddlewareValidateAuth)
