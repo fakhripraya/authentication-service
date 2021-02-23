@@ -38,7 +38,15 @@ func (authHandler *AuthHandler) GetAuthUser(rw http.ResponseWriter, r *http.Requ
 		ModifiedBy:     authUser.ModifiedBy,
 	}
 
-	rw.WriteHeader(http.StatusOK)
-	data.ToJSON(&userInfo, rw)
+	// parse the given instance to the response writer
+	err = data.ToJSON(&userInfo, rw)
+	if err != nil {
+
+		rw.WriteHeader(http.StatusBadRequest)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
 	return
 }
