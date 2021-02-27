@@ -2,7 +2,7 @@ package database
 
 import "time"
 
-// MasterUser is an entity that directly communicate with the MasterUser table in the database
+// MasterUser will migrate a master user table with the given specification into the database
 type MasterUser struct {
 	ID             uint      `gorm:"primaryKey;not null;autoIncrement" json:"id"`
 	RoleID         uint      `gorm:"not null" json:"role_id"`
@@ -11,6 +11,7 @@ type MasterUser struct {
 	Password       []byte    `gorm:"not null" json:"password"`
 	Email          string    `json:"email"`
 	Phone          string    `json:"phone"`
+	ProfilePicture string    `json:"profile_picture"`
 	LoginFailCount uint      `gorm:"default:0"`
 	IsVerified     bool      `gorm:"not null;default:false" json:"is_verified"`
 	IsActive       bool      `gorm:"not null;default:true" json:"is_active"`
