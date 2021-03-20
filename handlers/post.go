@@ -61,6 +61,7 @@ func (authHandler *AuthHandler) Login(rw http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// TODO: fix bug username yang sama masih bisa masuk database
 // Register to create a new user and register it to a database endpoint
 func (authHandler *AuthHandler) Register(rw http.ResponseWriter, r *http.Request) {
 
