@@ -139,7 +139,7 @@ func main() {
 	// register post handler
 	postRequest.HandleFunc("/register", authHandler.Register)
 	postRequest.HandleFunc("/register/check", Adapt(
-		http.HandlerFunc(authHandler.OtpValidate),
+		http.HandlerFunc(authHandler.OTPRegister),
 		authHandler.MiddlewareCheckOTP,
 	).ServeHTTP)
 	postRequest.HandleFunc("/register/create", authHandler.RegisterFinal)
@@ -147,7 +147,7 @@ func main() {
 	// login post handler
 	postRequest.HandleFunc("/login", authHandler.Login)
 	postRequest.HandleFunc("/login/check", Adapt(
-		http.HandlerFunc(authHandler.LoginFinal),
+		http.HandlerFunc(authHandler.OTPLogin),
 		authHandler.MiddlewareCheckOTP,
 	).ServeHTTP)
 

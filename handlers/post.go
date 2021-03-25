@@ -14,11 +14,29 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// OtpValidate is a method to validate otp check middleware
-func (authHandler *AuthHandler) OtpValidate(rw http.ResponseWriter, r *http.Request) {
+// OTPRegister is a method to validate the register otp
+func (authHandler *AuthHandler) OTPRegister(rw http.ResponseWriter, r *http.Request) {
 
+	// Currently nothing to do here ;)
 	// return status 200 if otp middleware passed
 	rw.WriteHeader(http.StatusOK)
+	return
+}
+
+// OTPLogin is a method to validate the login otp
+func (authHandler *AuthHandler) OTPLogin(rw http.ResponseWriter, r *http.Request) {
+
+	// get the credential from the context
+	cred := r.Context().Value(KeyCredentials{}).(*entities.CredentialsDB)
+
+	// generate a JWT token for securing http request
+	if err := authHandler.credentials.GenerateJWT(rw, r, authHandler.store, cred.Username); err != nil {
+		rw.WriteHeader(http.StatusInternalServerError)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
 	return
 }
 
@@ -32,7 +50,7 @@ func (authHandler *AuthHandler) Login(rw http.ResponseWriter, r *http.Request) {
 	var user database.MasterUser
 	if err := config.DB.Where("username = ?", cred.Username).First(&user).Error; err != nil {
 		rw.WriteHeader(http.StatusNotFound)
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+		data.ToJSON(&GenericError{Message: "Username tidak dapat ditemukan"}, rw)
 
 		return
 	}
@@ -41,7 +59,7 @@ func (authHandler *AuthHandler) Login(rw http.ResponseWriter, r *http.Request) {
 	// the encrypted password from the request
 	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(cred.Password)); err != nil {
 		rw.WriteHeader(http.StatusUnauthorized)
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+		data.ToJSON(&GenericError{Message: "Password salah"}, rw)
 
 		return
 	}
@@ -157,18 +175,6 @@ func (authHandler *AuthHandler) RegisterFinal(rw http.ResponseWriter, r *http.Re
 
 	// generate a JWT token for securing http request
 	if err := authHandler.credentials.GenerateJWT(rw, r, authHandler.store, cred.Username); err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-		return
-	}
-}
-
-// LoginFinal is the final point of the login function
-func (authHandler *AuthHandler) LoginFinal(rw http.ResponseWriter, r *http.Request) {
-
-	// generate a JWT token for securing http request
-	if err := authHandler.credentials.GenerateJWT(rw, r, authHandler.store, "username"); err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
