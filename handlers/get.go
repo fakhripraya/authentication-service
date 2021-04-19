@@ -29,6 +29,8 @@ func (authHandler *AuthHandler) GetAuthUser(rw http.ResponseWriter, r *http.Requ
 		DisplayName:    authUser.DisplayName,
 		Email:          authUser.Email,
 		Phone:          authUser.Phone,
+		ProfilePicture: authUser.ProfilePicture,
+		City:           authUser.City,
 		LoginFailCount: authUser.LoginFailCount,
 		IsVerified:     authUser.IsVerified,
 		IsActive:       authUser.IsActive,

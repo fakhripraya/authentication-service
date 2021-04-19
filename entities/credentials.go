@@ -17,6 +17,8 @@ type UserInfo struct {
 	DisplayName    string    `gorm:"not null" json:"displayname"`
 	Email          string    `json:"email"`
 	Phone          string    `json:"phone"`
+	ProfilePicture string    `json:"profile_picture"`
+	City           string    `gorm:"not null" json:"city"`
 	LoginFailCount uint      `gorm:"default:0"`
 	IsVerified     bool      `gorm:"not null;default:false" json:"is_verified"`
 	IsActive       bool      `gorm:"not null;default:true" json:"is_active"`
