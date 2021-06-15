@@ -23,13 +23,20 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	"github.com/srinathgs/mysqlstore"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 	"google.golang.org/grpc"
 )
 
-var err error
-
-// Session Store based on MYSQL database
-var sessionStore *mysqlstore.MySQLStore
+var (
+	googleOauthConfig *oauth2.Config
+	// TODO: randomize it
+	oauthStateString = "pseudo-random"
+	err              error
+	// Session Store based on MYSQL database
+	sessionStore *mysqlstore.MySQLStore
+	appConfig    entities.Configuration
+)
 
 // Adapter is an alias
 type Adapter func(http.Handler) http.Handler
@@ -44,10 +51,7 @@ func Adapt(handler http.Handler, adapters ...Adapter) http.Handler {
 	return handler
 }
 
-func main() {
-
-	// creates a structured logger for logging the entire program
-	logger := hclog.Default()
+func init() {
 
 	// load configuration from env file
 	err = godotenv.Load(".env")
@@ -58,13 +62,27 @@ func main() {
 	}
 
 	// Initialize app configuration
-	var appConfig entities.Configuration
 	err = data.ConfigInit(&appConfig)
 
 	if err != nil {
 		// log the fatal error if config init failed
 		log.Fatal(err)
 	}
+
+	googleOauthConfig = &oauth2.Config{
+		// RedirectURL:  "http://" + appConfig.API.Host + ":" + strconv.Itoa(appConfig.API.Port) + "/google/callback",
+		RedirectURL:  "http://localhost:8080/google/callback",
+		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
+		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"},
+		Endpoint:     google.Endpoint,
+	}
+}
+
+func main() {
+
+	// creates a structured logger for logging the entire program
+	logger := hclog.Default()
 
 	// creates an Email gRPC service connection WithInsecure
 	logger.Info("Establishing Email gRPC Connection on " + appConfig.EmailgRPC.Host + ":" + appConfig.EmailgRPC.Port)
@@ -113,10 +131,10 @@ func main() {
 	emailHandler := mailer.NewEmail(logger)
 
 	// creates a credentials instance
-	credentials := data.NewCredentials(waConnClient, emailConnClient, emailHandler, logger)
+	credentials := data.NewCredentials(waConnClient, emailConnClient, emailHandler, logger, googleOauthConfig, oauthStateString)
 
 	// creates the handlers
-	authHandler := handlers.NewAuthHandler(logger, credentials, sessionStore)
+	authHandler := handlers.NewAuthHandler(logger, credentials, sessionStore, googleOauthConfig, oauthStateString)
 
 	// creates a new serve mux
 	serveMux := mux.NewRouter()
@@ -128,10 +146,12 @@ func main() {
 	getRequest := serveMux.Methods(http.MethodGet).Subrouter()
 
 	// get user handler
-	getRequest.HandleFunc("/", authHandler.GetAuthUser)
-
-	// get global middleware
-	getRequest.Use(authHandler.MiddlewareValidateAuth)
+	getRequest.HandleFunc("/", Adapt(
+		http.HandlerFunc(authHandler.GetAuthUser),
+		authHandler.MiddlewareValidateAuth,
+	).ServeHTTP)
+	getRequest.HandleFunc("/google", authHandler.GetGoogleLoginURL)
+	getRequest.HandleFunc("/google/callback", authHandler.GetGoogleLoginCallback)
 
 	// post handlers
 	postRequest := serveMux.Methods(http.MethodPost).Subrouter()

@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/fakhripraya/authentication-service/mailer"
 	protos "github.com/fakhripraya/emailing-service/protos/email"
 	waProtos "github.com/fakhripraya/whatsapp-service/protos/whatsapp"
+	"golang.org/x/oauth2"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/hashicorp/go-hclog"
@@ -28,15 +30,42 @@ type Claims struct {
 
 // Credentials defines a struct for credentials flow
 type Credentials struct {
-	waClient     waProtos.WhatsAppClient
-	emailClient  protos.EmailClient
-	emailHandler *mailer.Email
-	logger       hclog.Logger
+	waClient          waProtos.WhatsAppClient
+	emailClient       protos.EmailClient
+	emailHandler      *mailer.Email
+	logger            hclog.Logger
+	googleOauthConfig *oauth2.Config
+	oauthStateString  string
 }
 
 // NewCredentials is a function to create new credentials struct
-func NewCredentials(waClient waProtos.WhatsAppClient, emailClient protos.EmailClient, emailHandler *mailer.Email, newLogger hclog.Logger) *Credentials {
-	return &Credentials{waClient, emailClient, emailHandler, newLogger}
+func NewCredentials(waClient waProtos.WhatsAppClient, emailClient protos.EmailClient, emailHandler *mailer.Email, newLogger hclog.Logger, newGoogleOauthConfig *oauth2.Config, newOauthStateString string) *Credentials {
+	return &Credentials{waClient, emailClient, emailHandler, newLogger, newGoogleOauthConfig, newOauthStateString}
+}
+
+// GetGoogleUserInfo process the google OAuth2 user info
+func (cred *Credentials) GetGoogleUserInfo(state string, code string) ([]byte, error) {
+	if state != cred.oauthStateString {
+		return nil, fmt.Errorf("invalid oauth state")
+	}
+
+	token, err := cred.googleOauthConfig.Exchange(oauth2.NoContext, code)
+	if err != nil {
+		return nil, fmt.Errorf("code exchange failed: %s", err.Error())
+	}
+
+	response, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + token.AccessToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed getting user info: %s", err.Error())
+	}
+
+	defer response.Body.Close()
+	contents, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed reading response body: %s", err.Error())
+	}
+
+	return contents, nil
 }
 
 // GetCurrentUser will get the current user login info
