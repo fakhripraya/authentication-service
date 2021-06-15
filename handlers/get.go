@@ -153,7 +153,7 @@ func (authHandler *AuthHandler) GetGoogleLoginCallback(rw http.ResponseWriter, r
 
 			newUserLogin.UserID = newUser.ID
 			newUserLogin.LoginProvider = "Google"
-			newUserLogin.ProviderKey = "107401105721129010945"
+			newUserLogin.ProviderKey = gauth.ID
 			newUserLogin.Created = time.Now().Local()
 			newUserLogin.CreatedBy = "SYSTEM"
 			newUserLogin.Modified = time.Now().Local()
