@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	mathRand "math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,6 +16,8 @@ import (
 	"github.com/fakhripraya/authentication-service/mailer"
 	protos "github.com/fakhripraya/emailing-service/protos/email"
 	waProtos "github.com/fakhripraya/whatsapp-service/protos/whatsapp"
+	"github.com/jinzhu/gorm"
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -30,17 +33,43 @@ type Claims struct {
 
 // Credentials defines a struct for credentials flow
 type Credentials struct {
-	waClient          waProtos.WhatsAppClient
-	emailClient       protos.EmailClient
-	emailHandler      *mailer.Email
-	logger            hclog.Logger
-	googleOauthConfig *oauth2.Config
-	oauthStateString  string
+	waClient            waProtos.WhatsAppClient
+	emailClient         protos.EmailClient
+	emailHandler        *mailer.Email
+	logger              hclog.Logger
+	googleOauthConfig   *oauth2.Config
+	facebookOauthConfig *oauth2.Config
+	oauthStateString    string
 }
 
 // NewCredentials is a function to create new credentials struct
-func NewCredentials(waClient waProtos.WhatsAppClient, emailClient protos.EmailClient, emailHandler *mailer.Email, newLogger hclog.Logger, newGoogleOauthConfig *oauth2.Config, newOauthStateString string) *Credentials {
-	return &Credentials{waClient, emailClient, emailHandler, newLogger, newGoogleOauthConfig, newOauthStateString}
+func NewCredentials(waClient waProtos.WhatsAppClient, emailClient protos.EmailClient, emailHandler *mailer.Email, newLogger hclog.Logger, newGoogleOauthConfig *oauth2.Config, newFacebookOauthConfig *oauth2.Config, newOauthStateString string) *Credentials {
+	return &Credentials{waClient, emailClient, emailHandler, newLogger, newGoogleOauthConfig, newFacebookOauthConfig, newOauthStateString}
+}
+
+// GetFacebookUserInfo process the facebook OAuth2 user info
+func (cred *Credentials) GetFacebookUserInfo(state string, code string) ([]byte, error) {
+	if state != cred.oauthStateString {
+		return nil, fmt.Errorf("invalid oauth state")
+	}
+
+	token, err := cred.facebookOauthConfig.Exchange(oauth2.NoContext, code)
+	if err != nil {
+		return nil, fmt.Errorf("code exchange failed: %s", err.Error())
+	}
+
+	response, err := http.Get("https://graph.facebook.com/me?fields=id,name,email,location,age_range,gender&access_token=" + token.AccessToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed getting user info: %s", err.Error())
+	}
+
+	defer response.Body.Close()
+	contents, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed reading response body: %s", err.Error())
+	}
+
+	return contents, nil
 }
 
 // GetGoogleUserInfo process the google OAuth2 user info
@@ -66,6 +95,92 @@ func (cred *Credentials) GetGoogleUserInfo(state string, code string) ([]byte, e
 	}
 
 	return contents, nil
+}
+
+// CreateO2AuthUser is a function to create O2Auth user based on the given login provider
+func (cred *Credentials) CreateO2AuthUser(rw http.ResponseWriter, r *http.Request, store *mysqlstore.MySQLStore, providerID string, provider string, email string, name string) error {
+
+	// work with database
+	// looking for an existing user login, if google provider exist then generate JWT
+	var userLogin database.MasterUserLogin
+	if err := config.DB.Where("provider_key = ? && login_provider = ?", providerID, provider).First(&userLogin).Error; err == nil {
+
+		return nil
+	}
+
+	// looking for an existing user , if not exist then create a new one
+	var user database.MasterUser
+	if err := config.DB.Where("username = ?", email).First(&user).Error; err == nil {
+		rw.WriteHeader(http.StatusForbidden)
+
+		return err
+	}
+
+	// proceed to create the new user with transaction scope
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		// do some database operations in the transaction (use 'tx' from this point, not 'db')
+		var newUser database.MasterUser
+		var dbErr error
+
+		newUser.RoleID = 1
+		newUser.Username = email
+		newUser.DisplayName = name
+		newUser.Password, dbErr = bcrypt.GenerateFromPassword([]byte(string(providerID+strconv.Itoa(mathRand.Int()))), 10)
+		if dbErr != nil {
+			return dbErr
+		}
+
+		newUser.Email = email
+		newUser.Created = time.Now().Local()
+		newUser.CreatedBy = "SYSTEM"
+		newUser.Modified = time.Now().Local()
+		newUser.ModifiedBy = "SYSTEM"
+
+		if dbErr = tx.Create(&newUser).Error; dbErr != nil {
+			return dbErr
+		}
+
+		// add the room details into the database with transaction scope
+		dbErr = tx.Transaction(func(tx2 *gorm.DB) error {
+
+			// create the variable specific to the nested transaction
+			var newUserLogin database.MasterUserLogin
+			var dbErr2 error
+
+			newUserLogin.UserID = newUser.ID
+			newUserLogin.LoginProvider = "GOOGLE"
+			newUserLogin.ProviderKey = providerID
+			newUserLogin.Created = time.Now().Local()
+			newUserLogin.CreatedBy = "SYSTEM"
+			newUserLogin.Modified = time.Now().Local()
+			newUserLogin.ModifiedBy = "SYSTEM"
+
+			// insert the new room details to database
+			if dbErr2 = tx2.Create(&newUserLogin).Error; dbErr2 != nil {
+				return dbErr2
+			}
+
+			// return nil will commit the whole nested transaction
+			return nil
+		})
+
+		if dbErr != nil {
+			return dbErr
+		}
+
+		// return nil will commit the whole transaction
+		return nil
+	})
+
+	// if transaction error
+	if err != nil {
+		rw.WriteHeader(http.StatusBadRequest)
+
+		return err
+	}
+
+	return nil
+
 }
 
 // GetCurrentUser will get the current user login info

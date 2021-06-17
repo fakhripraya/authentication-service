@@ -55,6 +55,15 @@ func (authHandler *AuthHandler) Login(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// looking for an existing user login, if provider exist, return with
+	var userLogin database.MasterUserLogin
+	if err := config.DB.Where("user_id = ?", user.ID).First(&userLogin).Error; err == nil {
+		rw.WriteHeader(http.StatusForbidden)
+		data.ToJSON(&GenericError{Message: "User sudah terdaftar dengan " + userLogin.LoginProvider + "silahkan login menggunakan provider tersebut."}, rw)
+
+		return
+	}
+
 	// hashing a crypted password from the database to match
 	// the encrypted password from the request
 	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(cred.Password)); err != nil {

@@ -3,3 +3,4 @@ config/config.development.yaml
 config/config.production.yaml
 config/config.whatsapp.yaml
 .env
+.env
