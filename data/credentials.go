@@ -48,7 +48,7 @@ func NewCredentials(waClient waProtos.WhatsAppClient, emailClient protos.EmailCl
 }
 
 // GetFacebookUserInfo process the facebook OAuth2 user info
-func (cred *Credentials) GetFacebookUserInfo(state string, code string) ([]byte, error) {
+func (cred *Credentials) GetFacebookUserInfo(state, code string) ([]byte, error) {
 	if state != cred.oauthStateString {
 		return nil, fmt.Errorf("invalid oauth state")
 	}
@@ -73,7 +73,7 @@ func (cred *Credentials) GetFacebookUserInfo(state string, code string) ([]byte,
 }
 
 // GetGoogleUserInfo process the google OAuth2 user info
-func (cred *Credentials) GetGoogleUserInfo(state string, code string) ([]byte, error) {
+func (cred *Credentials) GetGoogleUserInfo(state, code string) ([]byte, error) {
 	if state != cred.oauthStateString {
 		return nil, fmt.Errorf("invalid oauth state")
 	}
@@ -98,7 +98,7 @@ func (cred *Credentials) GetGoogleUserInfo(state string, code string) ([]byte, e
 }
 
 // CreateO2AuthUser is a function to create O2Auth user based on the given login provider
-func (cred *Credentials) CreateO2AuthUser(rw http.ResponseWriter, r *http.Request, store *mysqlstore.MySQLStore, providerID string, provider string, email string, name string) error {
+func (cred *Credentials) CreateO2AuthUser(rw http.ResponseWriter, r *http.Request, store *mysqlstore.MySQLStore, providerID, provider, email, name string) error {
 
 	// work with database
 	// looking for an existing user login, if google provider exist then generate JWT
@@ -110,7 +110,7 @@ func (cred *Credentials) CreateO2AuthUser(rw http.ResponseWriter, r *http.Reques
 
 	// looking for an existing user , if not exist then create a new one
 	var user database.MasterUser
-	if err := config.DB.Where("username = ?", email).First(&user).Error; err == nil {
+	if err := config.DB.Where("username = ?", email).First(&user).Error; err != nil {
 		rw.WriteHeader(http.StatusForbidden)
 
 		return err

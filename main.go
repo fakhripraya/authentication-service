@@ -73,7 +73,7 @@ func init() {
 	}
 
 	googleOauthConfig = &oauth2.Config{
-		RedirectURL:  "http://" + appConfig.API.Host + ":" + strconv.Itoa(appConfig.API.Port) + "/google/callback",
+		RedirectURL:  "http://" + appConfig.API.Host + ".nip.io:" + strconv.Itoa(appConfig.API.Port) + "/google/callback",
 		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"},
@@ -81,7 +81,7 @@ func init() {
 	}
 
 	facebookOauthConfig = &oauth2.Config{
-		RedirectURL:  "http://" + appConfig.API.Host + ":" + strconv.Itoa(appConfig.API.Port) + "/facebook/callback",
+		RedirectURL:  "http://" + appConfig.API.Host + ".nip.io:" + strconv.Itoa(appConfig.API.Port) + "/facebook/callback",
 		ClientID:     os.Getenv("FACEBOOK_CLIENT_ID"),
 		ClientSecret: os.Getenv("FACEBOOK_CLIENT_SECRET"),
 		Scopes:       []string{"public_profile", "email", "user_gender", "user_age_range", "user_location"},

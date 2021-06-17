@@ -105,7 +105,7 @@ func (authHandler *AuthHandler) GetGoogleLoginCallback(rw http.ResponseWriter, r
 		return
 	}
 
-	if err := authHandler.credentials.CreateO2AuthUser(rw, r, authHandler.store, gauth.ID, "GOOGLE", gauth.Email, gauth.Name); err == nil {
+	if err := authHandler.credentials.CreateO2AuthUser(rw, r, authHandler.store, gauth.ID, "GOOGLE", gauth.Email, gauth.Name); err != nil {
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
 		return
@@ -180,7 +180,7 @@ func (authHandler *AuthHandler) GetFacebookLoginCallback(rw http.ResponseWriter,
 		return
 	}
 
-	if err := authHandler.credentials.CreateO2AuthUser(rw, r, authHandler.store, fauth.ID, "FACEBOOK", fauth.Email, fauth.Name); err == nil {
+	if err := authHandler.credentials.CreateO2AuthUser(rw, r, authHandler.store, fauth.ID, "FACEBOOK", fauth.Email, fauth.Name); err != nil {
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
 		return
