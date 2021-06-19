@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
@@ -26,16 +25,12 @@ import (
 	"github.com/srinathgs/mysqlstore"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
-	"golang.org/x/oauth2/google"
 	"google.golang.org/grpc"
 )
 
 var (
-	googleOauthConfig   *oauth2.Config
 	facebookOauthConfig *oauth2.Config
-	// TODO: randomize it
-	oauthStateString = strconv.Itoa(rand.Int())
-	err              error
+	err                 error
 	// Session Store based on MYSQL database
 	sessionStore *mysqlstore.MySQLStore
 	appConfig    entities.Configuration
@@ -72,16 +67,8 @@ func init() {
 		log.Fatal(err)
 	}
 
-	googleOauthConfig = &oauth2.Config{
-		RedirectURL:  "http://" + appConfig.API.Host + ".nip.io:" + strconv.Itoa(appConfig.API.Port) + "/google/callback",
-		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
-		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
-		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email", "https://www.googleapis.com/auth/userinfo.profile"},
-		Endpoint:     google.Endpoint,
-	}
-
 	facebookOauthConfig = &oauth2.Config{
-		RedirectURL:  "http://" + appConfig.API.Host + ".nip.io:" + strconv.Itoa(appConfig.API.Port) + "/facebook/callback",
+		RedirectURL:  "https://auth.expo.io/@arisajah/indekos",
 		ClientID:     os.Getenv("FACEBOOK_CLIENT_ID"),
 		ClientSecret: os.Getenv("FACEBOOK_CLIENT_SECRET"),
 		Scopes:       []string{"public_profile", "email", "user_gender", "user_age_range", "user_location"},
@@ -141,10 +128,10 @@ func main() {
 	emailHandler := mailer.NewEmail(logger)
 
 	// creates a credentials instance
-	credentials := data.NewCredentials(waConnClient, emailConnClient, emailHandler, logger, googleOauthConfig, facebookOauthConfig, oauthStateString)
+	credentials := data.NewCredentials(waConnClient, emailConnClient, emailHandler, logger, facebookOauthConfig)
 
 	// creates the handlers
-	authHandler := handlers.NewAuthHandler(logger, credentials, sessionStore, googleOauthConfig, facebookOauthConfig, oauthStateString)
+	authHandler := handlers.NewAuthHandler(logger, credentials, sessionStore, facebookOauthConfig)
 
 	// creates a new serve mux
 	serveMux := mux.NewRouter()
@@ -160,9 +147,7 @@ func main() {
 		http.HandlerFunc(authHandler.GetAuthUser),
 		authHandler.MiddlewareValidateAuth,
 	).ServeHTTP)
-	getRequest.HandleFunc("/google", authHandler.GetGoogleLoginURL)
 	getRequest.HandleFunc("/google/callback", authHandler.GetGoogleLoginCallback)
-	getRequest.HandleFunc("/facebook", authHandler.GetFacebookLoginURL)
 	getRequest.HandleFunc("/facebook/callback", authHandler.GetFacebookLoginCallback)
 
 	// post handlers

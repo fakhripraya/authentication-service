@@ -2,11 +2,16 @@ package entities
 
 import "time"
 
-// CredentialsDB used to define credentials from the database
+// CredentialsDB used to define credentials from the client side
 type CredentialsDB struct {
 	Username string `json:"username"`
 	Password string `json:"password,omitempty"` /// TODO: will edit the password validation here
 	OTPCode  string `json:"otp_code,omitempty"` /// TODO: will edit the otp code validation here
+}
+
+// O2AuthCredentialsDB used to define O2Auth credentials from the client side
+type O2AuthCredentialsDB struct {
+	RedirectURL string `json:"redirectUri"`
 }
 
 // UserInfo used is a struct for current logged in user info

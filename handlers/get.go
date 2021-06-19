@@ -54,28 +54,10 @@ func (authHandler *AuthHandler) GetAuthUser(rw http.ResponseWriter, r *http.Requ
 	return
 }
 
-// GetGoogleLoginURL is a method to get the google oauth2 url
-func (authHandler *AuthHandler) GetGoogleLoginURL(rw http.ResponseWriter, r *http.Request) {
-
-	var url string
-
-	url = authHandler.googleOauthConfig.AuthCodeURL(authHandler.oauthStateString)
-	err := data.ToJSON(url, rw)
-	if err != nil {
-
-		rw.WriteHeader(http.StatusBadRequest)
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-		return
-	}
-
-	return
-}
-
 // GetGoogleLoginCallback is a method to respond to the google oauth2 callback
 func (authHandler *AuthHandler) GetGoogleLoginCallback(rw http.ResponseWriter, r *http.Request) {
 
-	content, err := authHandler.credentials.GetGoogleUserInfo(r.FormValue("state"), r.FormValue("code"))
+	content, err := authHandler.credentials.GetGoogleUserInfo(r.FormValue("accessToken"))
 	if err != nil {
 
 		rw.WriteHeader(http.StatusBadRequest)
@@ -122,28 +104,11 @@ func (authHandler *AuthHandler) GetGoogleLoginCallback(rw http.ResponseWriter, r
 	return
 }
 
-// GetFacebookLoginURL is a method to get the facebook oauth2 url
-func (authHandler *AuthHandler) GetFacebookLoginURL(rw http.ResponseWriter, r *http.Request) {
-
-	var url string
-
-	url = authHandler.facebookOauthConfig.AuthCodeURL(authHandler.oauthStateString)
-	err := data.ToJSON(url, rw)
-	if err != nil {
-
-		rw.WriteHeader(http.StatusBadRequest)
-		data.ToJSON(&GenericError{Message: err.Error()}, rw)
-
-		return
-	}
-
-	return
-}
-
 // GetFacebookLoginCallback is a method to respond to the facebook oauth2 callback
 func (authHandler *AuthHandler) GetFacebookLoginCallback(rw http.ResponseWriter, r *http.Request) {
 
-	content, err := authHandler.credentials.GetFacebookUserInfo(r.FormValue("state"), r.FormValue("code"))
+	content, err := authHandler.credentials.GetFacebookUserInfo(r.FormValue("code"))
+
 	if err != nil {
 
 		rw.WriteHeader(http.StatusBadRequest)

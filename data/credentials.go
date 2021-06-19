@@ -37,21 +37,16 @@ type Credentials struct {
 	emailClient         protos.EmailClient
 	emailHandler        *mailer.Email
 	logger              hclog.Logger
-	googleOauthConfig   *oauth2.Config
 	facebookOauthConfig *oauth2.Config
-	oauthStateString    string
 }
 
 // NewCredentials is a function to create new credentials struct
-func NewCredentials(waClient waProtos.WhatsAppClient, emailClient protos.EmailClient, emailHandler *mailer.Email, newLogger hclog.Logger, newGoogleOauthConfig *oauth2.Config, newFacebookOauthConfig *oauth2.Config, newOauthStateString string) *Credentials {
-	return &Credentials{waClient, emailClient, emailHandler, newLogger, newGoogleOauthConfig, newFacebookOauthConfig, newOauthStateString}
+func NewCredentials(waClient waProtos.WhatsAppClient, emailClient protos.EmailClient, emailHandler *mailer.Email, newLogger hclog.Logger, newFacebookOauthConfig *oauth2.Config) *Credentials {
+	return &Credentials{waClient, emailClient, emailHandler, newLogger, newFacebookOauthConfig}
 }
 
 // GetFacebookUserInfo process the facebook OAuth2 user info
-func (cred *Credentials) GetFacebookUserInfo(state, code string) ([]byte, error) {
-	if state != cred.oauthStateString {
-		return nil, fmt.Errorf("invalid oauth state")
-	}
+func (cred *Credentials) GetFacebookUserInfo(code string) ([]byte, error) {
 
 	token, err := cred.facebookOauthConfig.Exchange(oauth2.NoContext, code)
 	if err != nil {
@@ -73,17 +68,8 @@ func (cred *Credentials) GetFacebookUserInfo(state, code string) ([]byte, error)
 }
 
 // GetGoogleUserInfo process the google OAuth2 user info
-func (cred *Credentials) GetGoogleUserInfo(state, code string) ([]byte, error) {
-	if state != cred.oauthStateString {
-		return nil, fmt.Errorf("invalid oauth state")
-	}
-
-	token, err := cred.googleOauthConfig.Exchange(oauth2.NoContext, code)
-	if err != nil {
-		return nil, fmt.Errorf("code exchange failed: %s", err.Error())
-	}
-
-	response, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + token.AccessToken)
+func (cred *Credentials) GetGoogleUserInfo(accessToken string) ([]byte, error) {
+	response, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + accessToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed getting user info: %s", err.Error())
 	}
@@ -110,10 +96,9 @@ func (cred *Credentials) CreateO2AuthUser(rw http.ResponseWriter, r *http.Reques
 
 	// looking for an existing user , if not exist then create a new one
 	var user database.MasterUser
-	if err := config.DB.Where("username = ?", email).First(&user).Error; err != nil {
-		rw.WriteHeader(http.StatusForbidden)
+	if err := config.DB.Where("username = ?", email).First(&user).Error; err == nil {
 
-		return err
+		return nil
 	}
 
 	// proceed to create the new user with transaction scope
