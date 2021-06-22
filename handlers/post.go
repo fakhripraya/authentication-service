@@ -80,7 +80,6 @@ func (authHandler *AuthHandler) Login(rw http.ResponseWriter, r *http.Request) {
 		data.ToJSON(&GenericError{Message: err.Error()}, rw)
 
 	} else {
-		rw.WriteHeader(http.StatusOK)
 		data.ToJSON(&GenericError{Message: succ}, rw)
 
 	}
