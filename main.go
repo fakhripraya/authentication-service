@@ -147,6 +147,10 @@ func main() {
 		http.HandlerFunc(authHandler.GetAuthUser),
 		authHandler.MiddlewareValidateAuth,
 	).ServeHTTP)
+	getRequest.HandleFunc("/logout", Adapt(
+		http.HandlerFunc(authHandler.Logout),
+		authHandler.MiddlewareValidateAuth,
+	).ServeHTTP)
 	getRequest.HandleFunc("/google/callback", authHandler.GetGoogleLoginCallback)
 	getRequest.HandleFunc("/facebook/callback", authHandler.GetFacebookLoginCallback)
 

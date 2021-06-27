@@ -54,6 +54,29 @@ func (authHandler *AuthHandler) GetAuthUser(rw http.ResponseWriter, r *http.Requ
 	return
 }
 
+// Logout is a method to log the authorized user out
+func (authHandler *AuthHandler) Logout(rw http.ResponseWriter, r *http.Request) {
+
+	// Get a session (existing/new)
+	session, err := authHandler.store.Get(r, "session-name")
+	if err != nil {
+		rw.WriteHeader(http.StatusUnauthorized)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	authHandler.store.Delete(r, rw, session)
+	if err != nil {
+		rw.WriteHeader(http.StatusUnauthorized)
+		data.ToJSON(&GenericError{Message: err.Error()}, rw)
+
+		return
+	}
+
+	return
+}
+
 // GetGoogleLoginCallback is a method to respond to the google oauth2 callback
 func (authHandler *AuthHandler) GetGoogleLoginCallback(rw http.ResponseWriter, r *http.Request) {
 
