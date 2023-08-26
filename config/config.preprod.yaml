@@ -1,0 +1,21 @@
+api:
+  environment:  "preprod"
+  host: null
+  port: 8080
+  debug: false
+database:
+  host: "localhost"
+  port: 3306
+  user: "root"
+  password: "123456"
+  dbname: "jktinfokostdb_dev"
+jwt:
+  secret: "mwRvB#E+65MpdPU3v%j8#?p8*3QdJRyDqaW=ByuXDU+TbC"
+MySQLStore:
+  secret: "8*3QdJRyDqaW=ByuXDU+TbCmwRvB#E+65MpdPU3v%j8#?p"
+EmailgRPC:
+  host: "localhost"
+  port: "9092"
+WAgRPC:
+  host: "localhost"
+  port: "9093"

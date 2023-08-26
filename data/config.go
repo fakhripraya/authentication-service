@@ -16,8 +16,10 @@ var MySigningKey string
 func ConfigInit(config *entities.Configuration) error {
 	// determine the application state via env
 	var environment string
-	if os.Getenv("APP_STATE") != "production" && os.Getenv("APP_STATE") != "prod" {
+	if os.Getenv("APP_STATE") == "development" {
 		environment = "development"
+	} else if os.Getenv("APP_STATE") == "preprod" {
+		environment = "preprod"
 	} else {
 		environment = "production"
 	}
